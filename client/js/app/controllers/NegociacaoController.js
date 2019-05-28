@@ -35,7 +35,7 @@ class NegociacaoController {
 
         let negociacao = this._criaNegociacao();
 
-        service.cadastra(negociacao)
+        this._service.cadastra(negociacao)
             .then(mensagem => {
                 this._listaNegociacoes.adiciona(negociacao);
                 this._mensagem.texto = mensagem;
@@ -54,21 +54,9 @@ class NegociacaoController {
 
     importaNegociacoes() {
         
-        Promise.all([
-            service.obterNegociacoesDaSemana(),
-            service.obterNegociacoesDaSemanaAnterior(),
-            service.obterNegociacoesDaSemanaRetrasada()])
-        /*     .then(negociacoes => {
-                negociacoes
-                    .reduce((arrayAchatada, array) => arrayAchatada.concat(array), [])
-                    .filter(negociacao => {
-                        !this._listaNegociacoes.negociacoes.some(negociacaoExistente =>
-                            JSON.stringify(negociacaoExistente) == JSON.stringify(negociacao))
-                    })
-            }) */
+        this._service.importa(this._listaNegociacoes)
             .then(negociacoes => {
                 negociacoes
-                    .reduce((arrayAchatada, array) => arrayAchatada.concat(array), [])
                     .forEach(negociacao => this._listaNegociacoes.adiciona(negociacao));
                 this._mensagem.texto = 'Negociações importadas com sucesso';
             }).catch(erro => this._mensagem.texto = erro);
@@ -77,15 +65,14 @@ class NegociacaoController {
     apaga(event) {
         event.preventDefault();
                 
-        ConnectionFactory
-            .getConnection()
-            .then(connection => new NegociacaoDao(connection))
-            .then(dao => dao.apagaTodos())
+        this._service.apagaTodos()
             .then(mensagem => {
+                
                 this._listaNegociacoes.esvazia();
                 this._mensagem.texto = mensagem;
                 this._limpaFormulario();
-            });
+            })
+            .catch(erro => this._mensagem.texto = erro);
     }
 
     _limpaFormulario() {

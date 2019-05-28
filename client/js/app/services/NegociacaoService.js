@@ -56,4 +56,38 @@ class NegociacaoService {
             });
     }
 
+    apagaTodos() {
+        return ConnectionFactory
+            .getConnection()
+            .then(connection => new NegociacaoDao(connection))
+            .then(dao => dao.apagaTodos())
+            .then(() => 'Negociacoes apagadas!')
+            .catch(erro => {
+                console.log(erro);
+                throw new Error('Nao foi possivel apagar');
+            });
+    }
+
+    importa(listaAtual) {
+        return Promise.all([
+            this.obterNegociacoesDaSemana(),
+            this.obterNegociacoesDaSemanaAnterior(),
+            this.obterNegociacoesDaSemanaRetrasada()])
+            /* .then(negociacoes => {
+                negociacoes
+                    .reduce((arrayAchatada, array) => arrayAchatada.concat(array), [])
+                    .filter(negociacao => {
+                        !this._listaNegociacoes.negociacoes.some(negociacaoExistente =>
+                            JSON.stringify(negociacaoExistente) == JSON.stringify(negociacao))
+                    })
+            }) */
+            .then(negociacoes => {
+                return negociacoes
+                    .reduce((arrayAchatada, array) => arrayAchatada.concat(array), []);
+            }).catch(erro => {
+                console.log(erro);
+                throw new Error('Nao foi possivel importar');
+            });
+    }
+
 }
